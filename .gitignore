@@ -1,40 +1,64 @@
-lation and distribution
-__pycache__
-_ext
+# Python
+__pycache__/
 *.pyc
-*.pyd
-*.so
-*.dll
+*.pyo
 *.egg-info/
-build/
 dist/
-wheels/
+build/
+.venv/
+venv/
+*.egg
 
-# pytorch/python/numpy formats
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+*.log
+*.txt.bak
+
+# Data directories (should be downloaded separately)
+data/
+fss-1000/
+DAVIS/
+DAVIS-2017-trainval-480p.zip
+
+# Large model files (download separately)
 *.pth
-*.pkl
-*.npy
-*.ts
-model_ts*.txt
+*.pth.tar
+*.pt
+sam_vit_h_4b8939.pth
 
-# onnx models
-*.onnx
+# Temporary files
+*.tmp
+download*
+wget-log*
+*.bak
+temp.py
+checkpoint*
+data1/
 
-# ipython/jupyter notebooks
-**/.ipynb_checkpoints/
-
-# Editor temporaries
-*.swn
-*.swo
+# IDE
+.vscode/
+.idea/
 *.swp
-*~
+*.swo
 
-# editor settings
-.idea
-.vscode
-_darcs
+# OS
+.DS_Store
+Thumbs.db
 
-# output 
-data
-work_dirs
+# Export/debug files
+export.txt
+*.log.txt
 
+# Experimental scripts
+experimental/
+test_*.py
+v8_*.py
+
+# Downloaded files
+"download?id=*"*
+
+# PDF drafts
+*_draft*.pdf
+*_official*.pdf
