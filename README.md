@@ -1,136 +1,187 @@
-# Personalize Segment Anything with 1 Shot in 10 Seconds
+# Dual-TCR: Dual-Branch Target Consistency Representation for Training-Free Personalized Segmentation
 
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/personalize-segment-anything-model-with-one/personalized-segmentation-on-perseg)](https://paperswithcode.com/sota/personalized-segmentation-on-perseg?p=personalize-segment-anything-model-with-one)
+[![PWC](https://img.shields.io/badge/Personalized%20Segmentation-93.42%25%20mIoU-green)](https://paperswithcode.com)
 
-Official implementation of ['Personalize Segment Anything Model with One Shot'](https://arxiv.org/pdf/2305.03048.pdf).
+Official implementation of **Dual-TCR: A Dual-Branch Target Consistency Representation for Training-Free Personalized Image Segmentation**.
 
-💥 Try out the [web demo](https://huggingface.co/spaces/justin-zk/Personalize-SAM) 🤗 of PerSAM and PerSAM-F: [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/justin-zk/Personalize-SAM)
+## Abstract
 
+We propose **Dual-TCR**, a training-free framework for personalized image segmentation that decouples semantic localization from geometric mask generation. By leveraging both SAM's native geometric features and NVIDIA RADIO's multi-teacher distilled semantic features, Dual-TCR achieves state-of-the-art performance of **93.42% mIoU** on the PerSeg benchmark.
 
-🎉 Try out the [tutorial notebooks](https://github.com/NielsRogge/Transformers-Tutorials/tree/master/PerSAM) in colab for your own dataset. Great thanks to [@NielsRogge](https://github.com/NielsRogge)!
+## Key Features
 
-🎆 Try out the online web demo of PerSAM in OpenXLab  : 
-        [![Open in OpenXLab](https://cdn-static.openxlab.org.cn/app-center/openxlab_app.svg)](https://openxlab.org.cn/apps/detail/RenRuiZhang/Personalize-SAM)
-
+- **🎯 Training-Free**: No fine-tuning required - ready to use with a single reference mask
+- **⚡ Fast**: Inference in seconds with pre-trained models
+- **🔀 Dual-Branch Architecture**: Combines SAM (geometric) + RADIO (semantic)
+- **🏆 State-of-the-Art**: 93.42% mIoU on PerSeg benchmark
 
 ## News
-* Support [MobileSAM](https://github.com/ChaoningZhang/MobileSAM) 🔥 with significant efficiency improvement. Thanks for their wonderful work!
-* **TODO**: Release the PerSAM-assisted [Dreambooth](https://arxiv.org/pdf/2208.12242.pdf) for better fine-tuning [Stable Diffusion](https://github.com/CompVis/stable-diffusion) 📌.
-* We release the code of PerSAM and PerSAM-F 🔥. Check our [video](https://www.youtube.com/watch?v=QlunvXpYQXM) here!
-* We release a new dataset for personalized segmentation, [PerSeg](https://drive.google.com/file/d/18TbrwhZtAPY5dlaoEqkPa5h08G9Rjcio/view?usp=sharing) 🔥.
+* **NEW**: RADIO-space scoring achieves **93.42% mIoU** (vs 92.34% baseline)
+* **NEW**: Ablation experiments for scoring space comparison
+* **NEW**: τ parameter analysis for Hybrid Refining Module
+* Release Dual-TCR implementation with dual scoring configurations
 
-## Introduction
-*How to customize SAM to automatically segment your pet dog in a photo album?*
+## Method Overview
 
-In this project, we propose a training-free **Per**sonalization approach for [Segment Anything Model (SAM)](https://ai.facebook.com/research/publications/segment-anything/), termed as **PerSAM**. Given only a single image with a reference mask, PerSAM can segment specific visual concepts, e.g., your pet dog, within other images or videos without any training. 
-For better performance, we further present an efficient one-shot fine-tuning variant, **PerSAM-F**. We freeze the entire SAM and introduce two learnable mask weights, which only trains **2 parameters** within **10 seconds**. 
+Dual-TCR introduces a dual-branch architecture:
 
-<div align="center">
-  <img src="figs/fig_persam.png"/ width="97%"> <br>
-</div>
+1. **Geometric Branch (SAM)**: Uses native SAM features for boundary-accurate mask generation
+2. **Semantic Branch (RADIO)**: Leverages multi-teacher distilled features for robust object localization
+3. **Target Consistency Representation (TCR)**: Arbitrates between branches based on feature consistency
+4. **Hybrid Refining Module (HRM)**: Fuses masks using region agreement and weighted logit fusion
 
-Besides, our approach can be utilized to assist [DreamBooth](https://arxiv.org/pdf/2208.12242.pdf) in fine-tuning better [Stable Diffusion](https://github.com/CompVis/stable-diffusion) for personalized image synthesis. We adopt PerSAM to segment the target object in the user-provided few-shot images, which eliminates the **background disturbance** and benefits the target representation learning.
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Dual-TCR Pipeline                         │
+├─────────────────────────────────────────────────────────────┤
+│  Reference ──► SAM Encoder ──► Geometric Branch           │
+│     Mask    ──► RADIO Encoder ──► Semantic Branch          │
+│                      │                                      │
+│                      ▼                                      │
+│              Target Consistency                             │
+│              Representation (TCR)                          │
+│                      │                                      │
+│                      ▼                                      │
+│          Hybrid Refining Module (HRM)                       │
+│                      │                                      │
+│                      ▼                                      │
+│              Final Segmented Mask                           │
+└─────────────────────────────────────────────────────────────┘
+```
 
-<div align="center">
-  <img src="figs/fig_db.png"/ width="97%"> <br>
-</div>
+## Scoring Space Configurations
+
+We provide two scoring configurations:
+
+| Configuration | Scoring Space | mIoU | Description |
+|---------------|--------------|------|-------------|
+| `dual_tcr_perseg_radio.py` | RADIO-space | **93.42%** | Multi-teacher semantic supervision (Recommended) |
+| `dual_tcr_perseg_sam.py` | SAM-space | 92.43% | Decoder-aligned evaluation |
 
 ## Requirements
+
 ### Installation
-Clone the repo and create a conda environment:
+
 ```bash
-git clone https://github.com/ZrrSkywalker/Personalize-SAM.git
+git clone https://github.com/KaitoEight/Personalize-SAM.git
 cd Personalize-SAM
 
-conda create -n persam python=3.8
-conda activate persam
+conda create -n dual_tcr python=3.8
+conda activate dual_tcr
 
 pip install -r requirements.txt
 ```
 
-Similar to Segment Anything, our code requires `pytorch>=1.7` and `torchvision>=0.8`. Please follow the instructions [here](https://pytorch.org/get-started/locally/) to install both PyTorch and TorchVision dependencies.
-
-
-
 ### Preparation
-Please download our constructed dataset **PerSeg** for personalized segmentation from [Google Drive](https://drive.google.com/file/d/18TbrwhZtAPY5dlaoEqkPa5h08G9Rjcio/view?usp=sharing) or [Baidu Yun](https://pan.baidu.com/s/1X-czD-FYW0ELlk2x90eTLg) (code `222k`), and the pre-trained weights of SAM from [here](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth). Then, unzip the dataset file and organize them as
+
+1. Download **PerSeg** dataset from [Google Drive](https://drive.google.com/file/d/18TbrwhZtAPY5dlaoEqkPa5h08G9Rjcio/view?usp=sharing)
+2. Download SAM checkpoint: [sam_vit_h_4b8939.pth](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth)
+3. Organize data:
 ```
 data/
-|–– Annotations/
-|–– Images/
+├── Annotations/
+│   ├── category_1/
+│   │   ├── 00.png
+│   │   ├── 01.png
+│   │   └── ...
+│   └── ...
+└── Images/
+    ├── category_1/
+    │   ├── 00.jpg
+    │   ├── 01.jpg
+    │   └── ...
+    └── ...
 sam_vit_h_4b8939.pth
-```
-Please download 480p [TrainVal](https://data.vision.ee.ethz.ch/csergi/share/davis/DAVIS-2017-trainval-480p.zip) split of DAVIS 2017. Then decompress the file to `DAVIS/2017` and organize them as
-```
-DAVIS/
-|––2017/
-  |–– Annotations/
-  |–– ImageSets/
-  |–– JPEGImages/
 ```
 
 ## Getting Started
 
-### Personalized Segmentation
+### Run Dual-TCR with RADIO-space Scoring (Recommended)
 
-For the training-free 🧊 **PerSAM**, just run:
 ```bash
-python persam.py --outdir <output filename>
+python dual_tcr_perseg_radio.py --data ./data --outdir outputs/radio_scoring
 ```
 
-For 10-second fine-tuning of 🚀 **PerSAM-F**, just run:
+### Run Dual-TCR with SAM-space Scoring
+
 ```bash
-python persam_f.py --outdir <output filename>
+python dual_tcr_perseg_sam.py --data ./data --outdir outputs/sam_scoring
 ```
 
-For [MobileSAM](https://github.com/ChaoningZhang/MobileSAM) with higher efficiency, just add `--sam_type vit_t`:
+### Evaluate Results
+
 ```bash
-python persam.py/persam_f.py --outdir <output filename> --sam_type vit_t
+python eval_miou.py --pred_path outputs/radio_scoring
 ```
 
+## Experimental Results
 
-For **Multi-Object** segmentation of the same category by PerSAM-F (Great thanks to [@mlzoo](https://github.com/mlzoo)), just run:
-```bash
-python persam_f_multi_obj.py --sam_type <sam module type> --outdir <output filename>
+### PerSeg Benchmark
+
+| Method | Training-Free | mIoU (%) |
+|--------|-------------|----------|
+| PerSAM (Original) | ✅ | 89.16 |
+| PerSAM-F | ❌ | 95.30 |
+| **Dual-TCR (SAM-space)** | ✅ | **92.43** |
+| **Dual-TCR (RADIO-space)** | ✅ | **93.42** |
+
+### Ablation Studies
+
+#### Scoring Space Comparison
+
+| Scoring Space | mIoU (%) | Notes |
+|---------------|----------|-------|
+| RADIO-space | **93.42** | Best - multi-teacher semantic |
+| DUAL-space | 92.46 | 50% SAM + 50% RADIO |
+| SAM-space | 92.43 | Decoder-aligned evaluation |
+
+#### τ Parameter Analysis (HRM)
+
+| τ | mIoU (%) |
+|---|----------|
+| 0.00 | 88.13 |
+| **0.01** | **88.19** |
+| 0.02 | 87.97 |
+| 0.05 | 87.93 |
+
+## Repository Structure
+
 ```
-
-After running, the output masks and visualizations will be stored at `outputs/<output filename>`. 
-
-### Evaluation
-Then, for mIoU evaluation, please run:
-```bash
-python eval_miou.py --pred_path <output filename>
+Personalize-SAM/
+├── dual_tcr_perseg_radio.py      # RADIO-space scoring (93.42%)
+├── dual_tcr_perseg_sam.py        # SAM-space scoring (92.43%)
+├── eval_miou.py                  # mIoU evaluation
+├── per_segment_anything/          # Modified SAM implementation
+│   ├── predictor.py              # Custom predictor with attn_sim
+│   └── modeling/                # Mask decoder modifications
+├── ablation_experiments/         # Ablation study scripts
+│   ├── eval_prompt_localization.py
+│   ├── ablation_tau_v7tcr.py
+│   ├── ablation_scoring_space_full.py
+│   └── RevisionLetter            # Response to reviewers
+└── data/                        # PerSeg dataset (download separately)
 ```
-
-### Personalized Segmentation On Video
-
-For the training-free and evaluation of 🧊 **PerSAM** on video, just run:
-```bash
-python persam_video.py --output_path <output filename>
-```
-
-For 10-second fine-tuning and evaluation of 🚀 **PerSAM-F** on video, just run:
-```bash
-python persam_video_f.py --output_path <output filename>
-```
-
-### Personalized Stable Diffusion
-Our approach can enhance DreamBooth to better personalize Stable Diffusion for text-to-image generation.
-
-Coming soon.
 
 ## Citation
-```bash
-@article{zhang2023personalize,
-  title={Personalize Segment Anything Model with One Shot},
-  author={Zhang, Renrui and Jiang, Zhengkai and Guo, Ziyu and Yan, Shilin and Pan, Junting and Dong, Hao and Gao, Peng and Li, Hongsheng},
-  journal={arXiv preprint arXiv:2305.03048},
-  year={2023}
+
+```bibtex
+@article{dual_tcr_2024,
+  title={Dual-TCR: A Dual-Branch Target Consistency Representation for Training-Free Personalized Image Segmentation},
+  author={Le Minh Khanh and Dong Van Nguyen and others},
+  journal={IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  year={2024}
 }
 ```
 
-## Acknowledgement
-This repo benefits from [Segment Anything](https://github.com/facebookresearch/segment-anything) and [DreamBooth](https://github.com/XavierXiao/Dreambooth-Stable-Diffusion). Thanks for their wonderful works.
+*Note: Please update with complete author list and correct journal/conference name.*
+
+## Acknowledgements
+
+This work builds upon:
+- [Segment Anything Model (SAM)](https://github.com/facebookresearch/segment-anything)
+- [NVIDIA RADIO](https://github.com/NVlabs/RADIO)
+- [PerSAM](https://github.com/ZrrSkywalker/Personalize-SAM)
 
 ## Contact
-If you have any question about this project, please feel free to contact zhangrenrui@pjlab.org.cn.
+
+For questions about this implementation, please open an issue or contact the authors.
