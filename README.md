@@ -122,7 +122,7 @@ python eval_miou.py --pred_path outputs/radio_scoring
 |--------|-------------|----------|
 | PerSAM (Original) | ✅ | 89.16 |
 | PerSAM-F | ❌ | 95.30 |
-| **Dual-TCR (SAM-space)** | ✅ | **92.43** |
+| **Dual-TCR (SAM-space)** | ✅ | **92.34** |
 | **Dual-TCR (RADIO-space)** | ✅ | **93.42** |
 
 ### Ablation Studies
@@ -133,7 +133,7 @@ python eval_miou.py --pred_path outputs/radio_scoring
 |---------------|----------|-------|
 | RADIO-space | **93.42** | Best - multi-teacher semantic |
 | DUAL-space | 92.46 | 50% SAM + 50% RADIO |
-| SAM-space | 92.43 | Decoder-aligned evaluation |
+| SAM-space | 92.34 | Decoder-aligned evaluation |
 
 #### τ Parameter Analysis (HRM)
 
